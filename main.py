@@ -11,7 +11,7 @@ def get_current_time():
 
 def check_net_connectivity(server):
     try:
-        print(request.urlopen(url=server, timeout=3.0))
+        request.urlopen(url=server, timeout=3.0)
     except:
         return False
     return True
@@ -46,7 +46,7 @@ def login():
     response = requests.request("POST", url, headers=headers, data=payload)
     pwd = re.search(r'stok":"(.*)"', response.text, re.I).group(1)
     print(get_current_time() + "login success: token: " + pwd)
-    return token
+    return pwd
 
 
 def post_new_mac(stok):
