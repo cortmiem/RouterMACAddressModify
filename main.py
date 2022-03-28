@@ -1,19 +1,22 @@
 import random
 import re
-import requests
 import time
-from urllib import request
+
+import requests
+from tqdm import tqdm
 
 
 def get_current_time():
-    return time.strftime("[%H:%M:%S] ", time.localtime())
+    return time.strftime("\033[1m[%H:%M:%S]", time.localtime())
 
 
 def check_net_connectivity(server):
     try:
-        request.urlopen(url=server, timeout=3.0)
-    except:
+        r = requests.get(server, timeout=6)
+    except ConnectionError:
         return False
+    except:
+        return True
     return True
 
 
@@ -25,7 +28,7 @@ def get_random_mac():
               random.randint(0x00, 0xff),
               random.randint(0x00, 0xff)]
     mac = '-'.join(map(lambda x: "%02x" % x, getmac))
-    print(get_current_time() + "generate MAC: " + mac)
+    p.write(get_current_time() + "generate MAC: " + mac)
     return mac
 
 
@@ -45,7 +48,7 @@ def login():
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     pwd = re.search(r'stok":"(.*)"', response.text, re.I).group(1)
-    print(get_current_time() + "login success: token: " + pwd)
+    p.write('\n' + get_current_time() + "login success: token: " + pwd)
     return pwd
 
 
@@ -69,15 +72,21 @@ def post_new_mac(stok):
 
     response = requests.request("POST", url, headers=headers, data=payload)
     message = re.findall(r'{(.*?)}', response.text)
-    print(get_current_time() + message[0])
+    p.write(get_current_time() + "requests response: " + message[0])
 
 
-print("RMACAM 7.0")
-print("For internal use only.")
-while True:
-    if check_net_connectivity('https://www.baidu.com'):
-        time.sleep(1)
-    else:
-        token = login()
-        post_new_mac(token)
-        time.sleep(5)
+if __name__ == "__main__":
+    print("RMACAM 7.0")
+    print("For internal use only.")
+    i = 0
+    p = tqdm(bar_format='Checked: {n} times [{elapsed} {rate_fmt}], Disconnected: %i times' % i)
+    while True:
+        if check_net_connectivity("http://mirrors.gdut.edu.cn/"):
+            time.sleep(1)
+            p.update(1)
+        else:
+            time.sleep(1)
+            token = login()
+            i = i + 1
+            post_new_mac(token)
+            time.sleep(10)
