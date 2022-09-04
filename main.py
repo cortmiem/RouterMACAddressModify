@@ -3,7 +3,6 @@ import re
 import time
 
 import requests
-from tqdm import tqdm
 
 
 def get_current_time():
@@ -28,7 +27,7 @@ def get_random_mac():
               random.randint(0x00, 0xff),
               random.randint(0x00, 0xff)]
     mac = '-'.join(map(lambda x: "%02x" % x, getmac))
-    p.write(get_current_time() + "generate MAC: " + mac)
+    print(get_current_time() + "generate MAC: " + mac)
     return mac
 
 
@@ -48,7 +47,7 @@ def login():
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     pwd = re.search(r'stok":"(.*)"', response.text, re.I).group(1)
-    p.write('\n' + get_current_time() + "login success: token: " + pwd)
+    print('\n' + get_current_time() + "login success: token: " + pwd)
     return pwd
 
 
@@ -78,8 +77,6 @@ def post_new_mac(stok):
 if __name__ == "__main__":
     print("RMACAM 7.0")
     print("For internal use only.")
-    i = 0
-    p = tqdm(bar_format='Checked: {n} times [{elapsed} {rate_fmt}], Disconnected: %i times' % i)
     while True:
         if check_net_connectivity("http://mirrors.gdut.edu.cn/"):
             time.sleep(1)
@@ -87,6 +84,5 @@ if __name__ == "__main__":
         else:
             time.sleep(1)
             token = login()
-            i = i + 1
             post_new_mac(token)
             time.sleep(10)
